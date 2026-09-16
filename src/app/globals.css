@@ -2,25 +2,69 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --surface: #ffffff;
+  --surface-muted: #f7f7f8;
+  --foreground: #18181b;
+  --muted: #64748b;
+  --border: #e4e4e7;
+  --accent: #4f46e5;
+  --accent-fg: #ffffff;
+  --accent-soft: #eef2ff;
+  --danger: #dc2626;
+  --success: #15803d;
+  --warning: #b45309;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #09090b;
+    --surface: #111113;
+    --surface-muted: #18181b;
+    --foreground: #fafafa;
+    --muted: #a1a1aa;
+    --border: #27272a;
+    --accent: #818cf8;
+    --accent-fg: #1e1b4b;
+    --accent-soft: #1e1b4b;
+    --danger: #f87171;
+    --success: #4ade80;
+    --warning: #fbbf24;
   }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Textareas and code panes across the tools. */
+.code-pane {
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+/* Keep long, unbroken output (hashes, base64, minified CSS) inside its box. */
+.wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
