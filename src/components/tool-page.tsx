@@ -2,6 +2,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { CATEGORIES, getTool, relatedTools } from "@/lib/tools";
 import { ToolCard } from "@/components/tool-card";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbs, faqPage, graph, softwareApplication } from "@/lib/schema";
+import { renderMarkdown } from "@/lib/markdown";
+import { postsForTool } from "@/lib/cross-links";
 
 /**
  * Chrome shared by every tool page: heading, the tool itself, then the
@@ -15,18 +19,19 @@ export function ToolPage({ slug, children }: { slug: string; children: ReactNode
   if (!tool) throw new Error(`Unknown tool: ${slug}`);
 
   const related = relatedTools(slug);
+  const articles = postsForTool(slug);
   const category = CATEGORIES[tool.category];
 
-  // FAQ rich-result markup. Harmless if Google chooses not to use it.
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: tool.content.faq.map((entry) => ({
-      "@type": "Question",
-      name: entry.q,
-      acceptedAnswer: { "@type": "Answer", text: entry.a },
-    })),
-  };
+  // One @graph carrying the app itself, the breadcrumb trail and the FAQ.
+  const schema = graph([
+    softwareApplication(tool),
+    breadcrumbs([
+      { name: "Home", path: "/" },
+      { name: "Tools", path: "/tools" },
+      { name: tool.name, path: `/tools/${tool.slug}` },
+    ]),
+    faqPage(tool.content.faq),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -77,6 +82,17 @@ export function ToolPage({ slug, children }: { slug: string; children: ReactNode
             </ol>
           </section>
 
+          {tool.content.sections?.map((section) => (
+            <section key={section.heading}>
+              <h2 className="text-xl font-semibold tracking-tight">{section.heading}</h2>
+              <div
+                className="prose mt-3"
+                // First-party content from the registry, rendered at build time.
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(section.body) }}
+              />
+            </section>
+          ))}
+
           <section>
             <h2 className="text-xl font-semibold tracking-tight">Frequently asked questions</h2>
             <dl className="mt-4 divide-y divide-border rounded-xl border border-border bg-surface">
@@ -90,22 +106,47 @@ export function ToolPage({ slug, children }: { slug: string; children: ReactNode
           </section>
         </div>
 
-        {related.length > 0 && (
-          <aside>
-            <h2 className="text-xl font-semibold tracking-tight">Related tools</h2>
-            <div className="mt-4 grid gap-3">
-              {related.map((item) => (
-                <ToolCard key={item.slug} tool={item} />
-              ))}
-            </div>
-          </aside>
-        )}
+        <aside className="space-y-8">
+          {/*
+            Derived automatically from posts that link to this tool — see
+            lib/cross-links.ts. This is the path from tool traffic into the blog,
+            so it appears above related tools deliberately.
+          */}
+          {articles.length > 0 && (
+            <section>
+              <h2 className="text-xl font-semibold tracking-tight">Articles using this tool</h2>
+              <div className="mt-4 grid gap-3">
+                {articles.map((post) => (
+                  <Link
+                    key={post.slug}
+                    href={`/blog/${post.slug}`}
+                    className="group rounded-xl border border-border bg-surface p-4 transition hover:border-accent hover:shadow-sm"
+                  >
+                    <h3 className="font-semibold tracking-tight transition group-hover:text-accent">
+                      {post.title}
+                    </h3>
+                    <p className="mt-1.5 text-sm text-muted">{post.description}</p>
+                    <p className="mt-2 text-xs text-muted">{post.readingMinutes} min read</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {related.length > 0 && (
+            <section>
+              <h2 className="text-xl font-semibold tracking-tight">Related tools</h2>
+              <div className="mt-4 grid gap-3">
+                {related.map((item) => (
+                  <ToolCard key={item.slug} tool={item} />
+                ))}
+              </div>
+            </section>
+          )}
+        </aside>
       </div>
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
+      <JsonLd json={schema} />
     </div>
   );
 }

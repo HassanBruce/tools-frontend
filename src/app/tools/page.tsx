@@ -1,16 +1,25 @@
-import type { Metadata } from "next";
 import { ToolSearch } from "@/components/tool-search";
+import { JsonLd } from "@/components/json-ld";
 import { TOOL_COUNT } from "@/lib/tools";
-import { SITE_URL } from "@/lib/metadata";
+import { pageMetadata } from "@/lib/metadata";
+import { breadcrumbs, graph, toolCollection } from "@/lib/schema";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: `All ${TOOL_COUNT} Tools`,
   description:
     "Browse every developer and SEO tool — formatters, converters, generators, image batch processing and content analysis. All free, all in your browser.",
-  alternates: { canonical: `${SITE_URL}/tools` },
-};
+  path: "/tools",
+});
 
 export default function ToolsIndexPage() {
+  const schema = graph([
+    toolCollection(),
+    breadcrumbs([
+      { name: "Home", path: "/" },
+      { name: "Tools", path: "/tools" },
+    ]),
+  ]);
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <header>
@@ -20,6 +29,7 @@ export default function ToolsIndexPage() {
         </p>
       </header>
       <ToolSearch />
+      <JsonLd json={schema} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CATEGORIES, CATEGORY_ORDER } from "@/lib/tools";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function SiteHeader() {
   return (
@@ -25,14 +26,20 @@ export function SiteHeader() {
               {CATEGORIES[category].label}
             </Link>
           ))}
+          <Link href="/blog" className="text-muted transition hover:text-foreground">
+            Blog
+          </Link>
         </nav>
 
-        <Link
-          href="/tools"
-          className="ml-auto rounded-lg border border-border px-3 py-1.5 text-sm font-medium transition hover:bg-surface-muted"
-        >
-          All tools
-        </Link>
+        <div className="ml-auto flex items-center gap-2">
+          <Link
+            href="/tools"
+            className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium transition hover:bg-surface-muted"
+          >
+            All tools
+          </Link>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

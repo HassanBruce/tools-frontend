@@ -7,6 +7,9 @@
  * Keep them generic — anything tool-specific belongs in that tool's client.tsx.
  */
 
+import { CodeEditor, OpenFileButton } from "@/components/code-editor";
+import { ShareButton, useRestoreShared } from "@/components/share-link";
+import type { Language } from "@/lib/highlight";
 import {
   useCallback,
   useEffect,
@@ -418,7 +421,16 @@ export function CodeArea({
   );
 }
 
-/** Input pane with a label header. */
+/**
+ * Input pane with a label header.
+ *
+ * Three capabilities are opt-in per tool, and all three live here so a tool
+ * gains them by passing one prop rather than reimplementing anything:
+ *
+ *   language — syntax highlighting behind the textarea
+ *   openFile — read a text file from disk straight into the input
+ *   share    — copy a link that reopens the tool with this input
+ */
 export function InputPanel({
   label,
   value,
@@ -426,6 +438,9 @@ export function InputPanel({
   placeholder,
   rows,
   actions,
+  language = "plain",
+  openFile = false,
+  share = false,
 }: {
   label: string;
   value: string;
@@ -433,20 +448,35 @@ export function InputPanel({
   placeholder?: string;
   rows?: number;
   actions?: ReactNode;
+  language?: Language;
+  openFile?: boolean;
+  /** true uses the default key; a string gives this input its own key. */
+  share?: boolean | string;
 }) {
+  const shareKey = typeof share === "string" ? share : "i";
+  useRestoreShared(Boolean(share), shareKey, onChange);
+
   return (
     <Panel
       label={label}
       actions={
         <>
           {actions}
+          {openFile && <OpenFileButton onText={(text) => onChange(text)} />}
+          {share && <ShareButton value={value} shareKey={shareKey} />}
           <Button size="sm" variant="ghost" onClick={() => onChange("")} disabled={!value}>
             Clear
           </Button>
         </>
       }
     >
-      <CodeArea value={value} onChange={onChange} placeholder={placeholder} rows={rows} />
+      <CodeEditor
+        value={value}
+        onChange={onChange}
+        language={language}
+        placeholder={placeholder}
+        rows={rows}
+      />
     </Panel>
   );
 }
@@ -459,6 +489,7 @@ export function OutputPanel({
   mime,
   rows,
   actions,
+  language = "plain",
   placeholder = "Output appears here",
 }: {
   label: string;
@@ -467,6 +498,7 @@ export function OutputPanel({
   mime?: string;
   rows?: number;
   actions?: ReactNode;
+  language?: Language;
   placeholder?: string;
 }) {
   return (
@@ -480,7 +512,7 @@ export function OutputPanel({
         </>
       }
     >
-      <CodeArea value={value} readOnly rows={rows} placeholder={placeholder} />
+      <CodeEditor value={value} readOnly language={language} rows={rows} placeholder={placeholder} />
     </Panel>
   );
 }
